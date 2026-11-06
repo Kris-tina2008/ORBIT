@@ -1,0 +1,271 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #080b18;
+    color: white;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 8%;
+    background-color: #0b1022;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 4px;
+    color: #a99aff;
+}
+
+nav {
+    display: flex;
+    gap: 30px;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-size: 15px;
+}
+
+nav a:hover {
+    color: #a99aff;
+}
+
+.hero {
+    min-height: 600px;
+    display: flex;
+    align-items: center;
+    padding: 80px 10%;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(8, 11, 24, 0.95),
+            rgba(8, 11, 24, 0.4)
+        ),
+        url("https://images.unsplash.com/photo-1462331940025-496dfbfc7564")
+        center/cover;
+}
+
+.hero-content {
+    max-width: 650px;
+}
+
+.subtitle {
+    color: #a99aff;
+    letter-spacing: 4px;
+    margin-bottom: 25px;
+}
+
+h1 {
+    font-size: 52px;
+    line-height: 1.2;
+    margin-bottom: 25px;
+}
+
+.description {
+    color: #c2c5d3;
+    font-size: 17px;
+    line-height: 1.8;
+    margin-bottom: 35px;
+}
+
+.button {
+    display: inline-block;
+    background-color: #7865d9;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.button:hover {
+    background-color: #9684f5;
+}
+
+.about,
+.planets {
+    text-align: center;
+    padding: 80px 10%;
+}
+
+h2 {
+    font-size: 32px;
+    margin-bottom: 25px;
+    color: #b4a7ff;
+}
+
+.about p,
+.planets p {
+    color: #c2c5d3;
+    line-height: 1.8;
+    font-size: 17px;
+}
+.planet-intro {
+    color: #c2c5d3;
+    margin-bottom: 40px;
+    font-size: 17px;
+}
+
+.planet-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
+    margin-top: 35px;
+}
+
+.planet-card {
+    background-color: #111831;
+    border: 1px solid #292f50;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s;
+}
+
+.planet-card:hover {
+    transform: translateY(-8px);
+}
+
+.planet-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    box-shadow: 0 0 25px rgba(169, 154, 255, 0.2);
+}
+
+.mercury {
+    background: radial-gradient(circle at 35% 30%, #c9c1b7, #716b68 65%, #37343b);
+}
+
+.venus {
+    background: radial-gradient(circle at 35% 30%, #ffe0a0, #bd8050 65%, #68412f);
+}
+
+.earth {
+    background: radial-gradient(circle at 35% 30%, #8bd8ff, #2475c7 55%, #12345f);
+}
+
+.mars {
+    background: radial-gradient(circle at 35% 30%, #ffb17c, #c45132 65%, #64251f);
+}
+
+.planet-card h3 {
+    color: #b4a7ff;
+    font-size: 22px;
+    margin-bottom: 12px;
+}
+
+.planet-card p {
+    color: #c2c5d3;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+    .planet-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 500px) {
+    .planet-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.auth-container {
+    width: 400px;
+    max-width: 90%;
+    margin: 100px auto;
+    padding: 40px;
+    background-color: #111831;
+    border: 1px solid #292f50;
+    border-radius: 15px;
+    text-align: center;
+}
+
+.auth-container h1 {
+    font-size: 28px;
+    color: #b4a7ff;
+    margin-bottom: 15px;
+}
+
+.auth-container h2 {
+    margin-top: 15px;
+}
+
+.auth-container p {
+    color: #c2c5d3;
+    margin: 15px 0;
+}
+
+.auth-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 25px 0;
+}
+
+.auth-container input {
+    padding: 13px;
+    border: 1px solid #41496d;
+    border-radius: 6px;
+    background-color: #080b18;
+    color: white;
+    font-size: 15px;
+}
+
+.auth-container button {
+    padding: 13px;
+    background-color: #7865d9;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.auth-container button:hover {
+    background-color: #9684f5;
+}
+
+.auth-container a {
+    display: block;
+    color: #b4a7ff;
+    text-decoration: none;
+    margin-top: 15px;
+}
+
+.auth-container a:hover {
+    color: white;
+}
+
+.message {
+    color: #ff9999 !important;
+}
+
+.back-link {
+    font-size: 14px;
+}
+.planet-card form {
+    margin-top: 15px;
+}
+
+.planet-card form button {
+    width: 100%;
+    cursor: pointer;
+    font-family: inherit;
+}

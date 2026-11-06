@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход — ORBIT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <div class="auth-container">
+        <h1>С возвращением!</h1>
+        <p>Войди в свой аккаунт ORBIT</p>
+
+        {% with messages = get_flashed_messages() %}
+            {% for message in messages %}
+                <p class="message">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+            <input type="text" name="username" placeholder="Имя пользователя" required>
+            <input type="password" name="password" placeholder="Пароль" required>
+
+            <button type="submit">Войти</button>
+        </form>
+
+        <p>Ещё нет аккаунта?</p>
+        <a href="{{ url_for('register') }}">Зарегистрироваться</a>
+
+        <a href="/" class="back-link">На главную</a>
+    </div>
+
+</body>
+</html>

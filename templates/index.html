@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORBIT — Исследуй космос</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="logo">ORBIT</div>
+
+        <nav>
+            <a href="/">Главная</a>
+            <a href="#about">О проекте</a>
+            <a href="#planets">Планеты</a>
+            <a href="/login">Войти</a>
+        </nav>
+    </header>
+
+    <main>
+
+        <section class="hero">
+            <div class="hero-content">
+                <p class="subtitle">ИССЛЕДУЙ ВСЕЛЕННУЮ</p>
+
+                <h1>
+                    КОСМОС
+
+                    БЛИЖЕ, ЧЕМ ТЫ ДУМАЕШЬ
+                </h1>
+
+                <p class="description">
+                    Открой для себя удивительный мир планет,
+                    звёзд и галактик. Начни своё путешествие
+                    по бескрайней Вселенной вместе с ORBIT.
+                </p>
+
+                <a href="#planets" class="button">
+                    Начать исследование
+                </a>
+            </div>
+        </section>
+
+        <section class="about" id="about">
+            <h2>О проекте ORBIT</h2>
+
+            <p>
+                ORBIT — это интерактивный каталог космических
+                объектов, созданный для тех, кто хочет больше
+                узнать о Вселенной.
+            </p>
+        </section>
+
+        <section class="planets" id="planets">
+
+            <h2>Исследуй планеты</h2>
+
+            <p class="planet-intro">
+                Познакомься с удивительными мирами
+                нашей Солнечной системы.
+            </p>
+
+            <div class="planet-grid">
+<div class="planet-grid">
+
+    <div class="planet-card">
+        <div class="planet-image mercury"></div>
+        <h3>Меркурий</h3>
+        <p>Самая маленькая планета Солнечной системы.</p>
+
+        <form action="{{ url_for('add_favorite') }}" method="POST">
+            <input type="hidden" name="object_name" value="Меркурий">
+            <input type="hidden" name="description"
+                   value="Самая маленькая планета Солнечной системы.">
+            <button type="submit" class="button">
+                Добавить в избранное
+            </button>
+        </form>
+    </div>
+
+    <div class="planet-card">
+        <div class="planet-image venus"></div>
+        <h3>Венера</h3>
+        <p>Самая горячая планета нашей системы.</p>
+
+        <form action="{{ url_for('add_favorite') }}" method="POST">
+            <input type="hidden" name="object_name" value="Венера">
+            <input type="hidden" name="description"
+                   value="Самая горячая планета нашей системы.">
+            <button type="submit" class="button">
+                Добавить в избранное
+            </button>
+        </form>
+    </div>
+
+    <div class="planet-card">
+        <div class="planet-image earth"></div>
+        <h3>Земля</h3>
+        <p>Наш общий дом и единственная известная планета с жизнью.</p>
+
+        <form action="{{ url_for('add_favorite') }}" method="POST">
+            <input type="hidden" name="object_name" value="Земля">
+            <input type="hidden" name="description"
+                   value="Наш общий дом и единственная известная планета с жизнью.">
+            <button type="submit" class="button">
+                Добавить в избранное
+            </button>
+        </form>
+    </div>
+
+    <div class="planet-card">
+        <div class="planet-image mars"></div>
+        <h3>Марс</h3>
+        <p>Красная планета, привлекающая внимание учёных.</p>
+
+        <form action="{{ url_for('add_favorite') }}" method="POST">
+            <input type="hidden" name="object_name" value="Марс">
+            <input type="hidden" name="description"
+                   value="Красная планета, привлекающая внимание учёных.">
+            <button type="submit" class="button">
+                Добавить в избранное
+            </button>
+        </form>
+    </div>
+
+</div>
+            </div>
+
+        </section>
+
+    </main>
+
+</body>
+</html>
+
+
+
+
+

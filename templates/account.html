@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет — ORBIT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .account-container {
+            max-width: 850px;
+            margin: 50px auto;
+            padding: 30px;
+        }
+
+        .profile-card, .favorites-card {
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .profile-card h2 {
+            font-size: 28px;
+        }
+
+        .favorite-item {
+            padding: 15px;
+            margin-top: 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.07);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .account-button {
+            display: inline-block;
+            padding: 10px 18px;
+            margin: 8px 5px 0 0;
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            background: #4356a1;
+            border: none;
+            cursor: pointer;
+        }
+
+        .delete-button {
+            background: #923d55;
+        }
+
+        .flash-message {
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background: rgba(70, 120, 180, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="account-container">
+
+    <h1>Личный кабинет ORBIT</h1>
+    <p>Центр управления твоими космическими исследованиями</p>
+
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <div class="flash-message">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="profile-card">
+        <h2>Мой профиль</h2>
+
+        <p><strong>Имя пользователя:</strong> {{ user["username"] }}</p>
+
+        <p><strong>Дата регистрации:</strong>
+            {{ user["created_at"] or "Не указана" }}
+        </p>
+
+        <p>Добро пожаловать в свою персональную космическую станцию!</p>
+    </div>
+
+    <div class="favorites-card">
+        <h2>Избранное</h2>
+
+        {% if favorites %}
+
+            {% for item in favorites %}
+
+                <div class="favorite-item">
+
+                    <div>
+                        <strong>{{ item["object_name"] }}</strong>
+
+                        {% if item["description"] %}
+                            <p>{{ item["description"] }}</p>
+                        {% endif %}
+                    </div>
+
+                    <form action="{{ url_for('delete_favorite', favorite_id=item['id']) }}"
+                          method="POST">
+
+                        <button type="submit"
+                                class="account-button delete-button">
+                            Удалить
+                        </button>
+
+                    </form>
+
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <p>Пока здесь ничего нет.</p>
+            <p>Добавляй интересные космические объекты в избранное!</p>
+
+        {% endif %}
+    </div>
+<div class="favorites-card">
+
+    <h2>Настройки аккаунта</h2>
+
+    <h3>Изменить имя пользователя</h3>
+
+    <form action="{{ url_for('update_username') }}" method="POST">
+
+        <input
+            type="text"
+            name="new_username"
+            placeholder="Новое имя пользователя"
+            required
+        >
+
+        <button type="submit" class="account-button">
+            Сохранить имя
+        </button>
+
+    </form>
+
+    <hr>
+
+    <h3>Изменить пароль</h3>
+
+    <form action="{{ url_for('update_password') }}" method="POST">
+
+        <input
+            type="password"
+            name="old_password"
+            placeholder="Старый пароль"
+            required
+        >
+
+        <input
+            type="password"
+            name="new_password"
+            placeholder="Новый пароль"
+            minlength="6"
+            required
+        >
+
+        <button type="submit" class="account-button">
+            Изменить пароль
+        </button>
+
+    </form>
+
+</div>
+    <a href="/" class="account-button">На главную</a>
+
+    <a href="{{ url_for('logout') }}" class="account-button">
+        Выйти из аккаунта
+    </a>
+
+</div>
+
+</body>
+</html>
