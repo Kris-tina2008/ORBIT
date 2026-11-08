@@ -1,60 +1,55 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
 import os
-import sqlite3
-from werkzeug.security import generate_password_hash, check_password_hash
+import psycopg2
+from dotenv import load_dotenv
+
+load_dotenv()
+from psycopg2.extras import RealDictCursor
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 
 app = Flask(__name__)
+
 app.secret_key = os.environ.get("SECRET_KEY", "local-development-key")
 
-DATABASE = "orbit.db"
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-# Подключение к базе данных
+# Подключение к базе данных Neon
 def get_db_connection():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
+    if not DATABASE_URL:
+        raise RuntimeError("Не задана переменная DATABASE_URL в настройках приложения")
 
-# Создание и обновление таблиц
+    return psycopg2.connect(
+        DATABASE_URL,
+        cursor_factory=RealDictCursor
+    )
+
+# Создание таблиц
 def init_db():
     conn = get_db_connection()
 
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id SERIAL PRIMARY KEY,
+                    username TEXT UNIQUE NOT NULL,
+                    password TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
 
-    # Проверяем, есть ли столбец даты в старой базе
-    columns = [
-        row["name"]
-        for row in conn.execute("PRAGMA table_info(users)").fetchall()
-    ]
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS favorites (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL REFERENCES users(id),
+                    object_name TEXT NOT NULL,
+                    description TEXT,
+                    UNIQUE(user_id, object_name)
+                )
+            """)
 
-    if "created_at" not in columns:
-        conn.execute("ALTER TABLE users ADD COLUMN created_at TEXT")
-        conn.execute("""
-            UPDATE users
-            SET created_at = CURRENT_TIMESTAMP
-            WHERE created_at IS NULL
-        """)
-
-    # Таблица избранного
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS favorites (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            object_name TEXT NOT NULL,
-            description TEXT,
-            UNIQUE(user_id, object_name),
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )
-    """)
-
-    conn.commit()
-    conn.close()
+        conn.commit()
+    finally:
+        conn.close()
 
 # Главная страница
 @app.route("/")
@@ -76,21 +71,24 @@ def register():
             flash("Пароль должен содержать не менее 6 символов")
             return redirect(url_for("register"))
 
+        from werkzeug.security import generate_password_hash
+
+        hashed_password = generate_password_hash(password)
         conn = get_db_connection()
 
         try:
-            hashed_password = generate_password_hash(password)
-
-            conn.execute(
-                "INSERT INTO users (username, password) VALUES (?, ?)",
-                (username, hashed_password)
-            )
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO users (username, password) VALUES (%s, %s)",
+                    (username, hashed_password)
+                )
 
             conn.commit()
             flash("Регистрация прошла успешно! Теперь войди в аккаунт.")
             return redirect(url_for("login"))
 
-        except sqlite3.IntegrityError:
+        except psycopg2.errors.UniqueViolation:
+            conn.rollback()
             flash("Такое имя пользователя уже занято")
             return redirect(url_for("register"))
 
@@ -106,19 +104,23 @@ def login():
         username = request.form["username"].strip()
         password = request.form["password"]
 
+        from werkzeug.security import check_password_hash
+
         conn = get_db_connection()
 
-        user = conn.execute(
-            "SELECT * FROM users WHERE username = ?",
-            (username,)
-        ).fetchone()
-
-        conn.close()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT * FROM users WHERE username = %s",
+                    (username,)
+                )
+                user = cursor.fetchone()
+        finally:
+            conn.close()
 
         if user and check_password_hash(user["password"], password):
             session["user_id"] = user["id"]
             session["username"] = user["username"]
-
             return redirect(url_for("account"))
 
         flash("Неверное имя пользователя или пароль")
@@ -133,17 +135,21 @@ def account():
 
     conn = get_db_connection()
 
-    user = conn.execute(
-        "SELECT * FROM users WHERE id = ?",
-        (session["user_id"],)
-    ).fetchone()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT * FROM users WHERE id = %s",
+                (session["user_id"],)
+            )
+            user = cursor.fetchone()
 
-    favorites = conn.execute(
-        "SELECT * FROM favorites WHERE user_id = ? ORDER BY id DESC",
-        (session["user_id"],)
-    ).fetchall()
-
-    conn.close()
+            cursor.execute(
+                "SELECT * FROM favorites WHERE user_id = %s ORDER BY id DESC",
+                (session["user_id"],)
+            )
+            favorites = cursor.fetchall()
+    finally:
+        conn.close()
 
     if user is None:
         session.clear()
@@ -171,17 +177,20 @@ def add_favorite():
     conn = get_db_connection()
 
     try:
-        conn.execute(
-            """
-            INSERT INTO favorites (user_id, object_name, description)
-            VALUES (?, ?, ?)
-            """,
-            (session["user_id"], object_name, description)
-        )
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO favorites (user_id, object_name, description)
+                VALUES (%s, %s, %s)
+                """,
+                (session["user_id"], object_name, description)
+            )
+
         conn.commit()
         flash("Объект добавлен в избранное!")
 
-    except sqlite3.IntegrityError:
+    except psycopg2.errors.UniqueViolation:
+        conn.rollback()
         flash("Этот объект уже есть в избранном")
 
     finally:
@@ -197,17 +206,20 @@ def delete_favorite(favorite_id):
 
     conn = get_db_connection()
 
-    conn.execute(
-        "DELETE FROM favorites WHERE id = ? AND user_id = ?",
-        (favorite_id, session["user_id"])
-    )
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM favorites WHERE id = %s AND user_id = %s",
+                (favorite_id, session["user_id"])
+            )
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+    finally:
+        conn.close()
 
     flash("Объект удалён из избранного")
-
     return redirect(url_for("account"))
+
 # Изменение имени пользователя
 @app.route("/account/update_username", methods=["POST"])
 def update_username():
@@ -223,16 +235,18 @@ def update_username():
     conn = get_db_connection()
 
     try:
-        conn.execute(
-            "UPDATE users SET username = ? WHERE id = ?",
-            (new_username, session["user_id"])
-        )
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "UPDATE users SET username = %s WHERE id = %s",
+                (new_username, session["user_id"])
+            )
 
         conn.commit()
         session["username"] = new_username
         flash("Имя пользователя успешно изменено!")
 
-    except sqlite3.IntegrityError:
+    except psycopg2.errors.UniqueViolation:
+        conn.rollback()
         flash("Такое имя пользователя уже занято")
 
     finally:
@@ -249,42 +263,46 @@ def update_password():
     old_password = request.form.get("old_password", "")
     new_password = request.form.get("new_password", "")
 
+    from werkzeug.security import check_password_hash, generate_password_hash
+
     conn = get_db_connection()
 
-    user = conn.execute(
-        "SELECT * FROM users WHERE id = ?",
-        (session["user_id"],)
-    ).fetchone()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT * FROM users WHERE id = %s",
+                (session["user_id"],)
+            )
+            user = cursor.fetchone()
 
-    if not user or not check_password_hash(user["password"], old_password):
+            if not user or not check_password_hash(user["password"], old_password):
+                flash("Старый пароль введён неправильно")
+                return redirect(url_for("account"))
+
+            if len(new_password) < 6:
+                flash("Новый пароль должен содержать минимум 6 символов")
+                return redirect(url_for("account"))
+
+            hashed_password = generate_password_hash(new_password)
+
+            cursor.execute(
+                "UPDATE users SET password = %s WHERE id = %s",(hashed_password, session["user_id"])
+            )
+
+        conn.commit()
+        flash("Пароль успешно изменён!")
+    finally:
         conn.close()
-        flash("Старый пароль введён неправильно")
-        return redirect(url_for("account"))
-
-    if len(new_password) < 6:
-        conn.close()
-        flash("Новый пароль должен содержать минимум 6 символов")
-        return redirect(url_for("account"))
-
-    hashed_password = generate_password_hash(new_password)
-
-    conn.execute(
-        "UPDATE users SET password = ? WHERE id = ?",
-        (hashed_password, session["user_id"])
-    )
-
-    conn.commit()
-    conn.close()
-
-    flash("Пароль успешно изменён!")
-
     return redirect(url_for("account"))
+
 # Выход из аккаунта
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("home"))
 
+# Создаём таблицы при запуске приложения
+init_db()
+
 if __name__ == "__main__":
-    init_db()
-    app.run(debug=True)
+    app.run(debug=True).ex
