@@ -303,12 +303,15 @@ def logout():
 
 # Создаём таблицы при запуске приложения
 init_db()
-
-if __name__ == "__main__":
 @app.route('/robots.txt')
 def robots():
     return """User-agent: *
 Allow: /
 
 Sitemap: https://orbit-space-a7cb.onrender.com/sitemap.xml"""  
-app.run(debug=True).ex
+
+
+
+
+if __name__ == "__main__":
+    app.run(debug=True).ex
