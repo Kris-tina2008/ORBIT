@@ -305,4 +305,10 @@ def logout():
 init_db()
 
 if __name__ == "__main__":
-    app.run(debug=True).ex
+@app.route('/robots.txt')
+def robots():
+    return """User-agent: *
+Allow: /
+
+Sitemap: https://orbit-space-a7cb.onrender.com/sitemap.xml"""  
+app.run(debug=True).ex
