@@ -302,7 +302,6 @@ def logout():
     return redirect(url_for("home"))
 
 # Создаём таблицы при запуске приложения
-init_db()
 @app.route('/robots.txt')
 def robots():
     return """User-agent: *
@@ -310,5 +309,6 @@ Allow: /
 
 Sitemap: https://orbit-space-a7cb.onrender.com/sitemap.xml"""
 
+init_db()
 if __name__ == "__main__":
     app.run(debug=True)
